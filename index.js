@@ -4,6 +4,7 @@ const { json } = require('express/lib/response');
 const app = express();
 const port = process.env.PORT;
 
+const middlewares = require('./middlewares')
 
 const bp = require('body-parser');
 const helmet = require('helmet')
@@ -27,5 +28,8 @@ app.get('/', (req, res) => {
 app.listen(port, ()=>{
 	console.log(`App is listening on port ${port}`)
 })
+app.use(middlewares.authenticateJWT)
 
 app.use('/api', api);
+
+app.use(middlewares.notFound)

@@ -3,17 +3,27 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-  return knex.schema.createTable('users', function (table) {
+  return knex.schema.createTable('organizations', function (table) {
 		table.increments('id');
-		table.string('name', 255).notNullable();
-		table.string('surname', 255).notNullable();
+		table.string('organization_name', 255).notNullable();
+		table.timestamp('created_at').notNullable();
+		table.timestamp('updated_at').notNullable();
+		table.timestamp('deleted_at');
+
+	}).createTable('users', function (table) {
+		table.increments('id');
+		table.bigInteger('organization_id').references('id').inTable('organizations').notNullable()
+		table.string('name', 255);
+		table.string('surname', 255);
 		table.string('mail', 255).notNullable();
 		table.string('password', 255).notNullable();
 		table.timestamp('created_at').notNullable();
 		table.timestamp('updated_at').notNullable();
 		table.timestamp('deleted_at');
+		
 	}).createTable('permissions', function (table){
-		table.bigInteger('user_id').references('id').inTable('users').notNullable();
+		table.increments('id');
+		table.bigInteger('user_id').references('id').inTable('users').notNullable().unique();
 		table.boolean('adding_users').defaultTo(false);
 		table.boolean('editing_users_permissions').defaultTo(false);
 		table.boolean('removing_users').defaultTo(false);
@@ -35,12 +45,15 @@ exports.up = function(knex) {
 		
 	}).createTable('categories', function (table){
 		table.increments('id');
+		table.bigInteger('organization_id').references('id').inTable('organizations').notNullable();
 		table.string('category_name');
 		table.timestamp('created_at').notNullable();
 		table.timestamp('updated_at').notNullable();
 		table.timestamp('deleted_at');
+
 	}).createTable('racks', function (table){
 		table.increments('id');
+		table.bigInteger('organization_id').references('id').inTable('organizations').notNullable();
 		table.string('name', 255).notNullable();
 		table.bigInteger('shelves').notNullable();
 		table.bigInteger('places').notNullable();
@@ -50,6 +63,7 @@ exports.up = function(knex) {
 
 	}).createTable('items', function (table){
 		table.increments('id');
+		table.bigInteger('organization_id').references('id').inTable('organizations').notNullable();
 		table.bigInteger('rack_id').references('id').inTable('racks').notNullable();
 		table.bigInteger('shelve_number').notNullable();
 		table.bigInteger('place_number').notNullable();
@@ -59,6 +73,7 @@ exports.up = function(knex) {
 		table.timestamp('created_at').notNullable();
 		table.timestamp('updated_at').notNullable();
 		table.timestamp('deleted_at');
+		
 	})
 };
 
@@ -73,5 +88,6 @@ exports.down = async function(knex) {
 	await knex.schema.dropTable('sessions');
 	await knex.schema.dropTable('permissions');
 	await knex.schema.dropTable('users');
+	await knex.schema.dropTable('organizations');
 
 };
