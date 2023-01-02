@@ -57,12 +57,18 @@ app.get('/getAllOrganizations', async (req, res) => {
 	})
 })
 
-app.get('/getOneOrganization/:id', async (req, res) => {
-	const data = await db('organizations').where({
-		id: req.params.id,
+app.get('/getOneOrganization', async (req, res) => {
+	const searchingData = req.body;
+	const foundCategory = (await db('organizations').select('*').where({...searchingData,
 		deleted_at: null
-	});
-	res.json(data[0]);
+	}))[0];
+	if(foundCategory){
+		res.json(foundCategory)
+	}else{
+		res.json({
+			message: 'Data not found'
+		})
+	}
 });
 
 app.put('/editOrganization/:id', async (req, res) => {
@@ -127,12 +133,18 @@ app.get('/getAllUsers', async (req, res) => {
 	})
 })
 
-app.get('/getOneUser/:id', async (req, res) => {
-	const user = await db('users').where({
-		id: req.params.id,
+app.get('/getOneUser', async (req, res) => {
+	const searchingData = req.body;
+	const foundCategory = (await db('users').select('*').where({...searchingData,
 		deleted_at: null
-	});
-	res.json(user[0])
+	}))[0];
+	if(foundCategory){
+		res.json(foundCategory)
+	}else{
+		res.json({
+			message: 'Data not found'
+		})
+	}
 })
 
 app.put('/editUser/:id', async (req, res) => {
@@ -151,7 +163,11 @@ app.put('/editUser/:id', async (req, res) => {
 // permisions
 // ----------
 
-app.post('/addPermission', async (req, res) => {const { JsonWebTokenError } = require('jsonwebtoken');
+app.post('/addPermission', async (req, res) => {
+	const permission = req.body;
+	const now = moment();
+	const addedPermissions = await db('permissions').insert({...permission, created_at: now, updated_at: now}).returning('*')
+	res.json(addedPermissions[0])
 })
 
 app.delete('/removePermission/:id', async (req, res) => {
@@ -196,12 +212,18 @@ app.get('/getAllPermissions', async (req, res) => {
 	})
 })
 
-app.get('/getOnePermission/:id', async (req, res) => {
-	const permissions = await db('permissions').where({
-		id: req.params.id,
+app.get('/getOnePermission', async (req, res) => {
+	const searchingData = req.body;
+	const foundCategory = (await db('permissions').select('*').where({...searchingData,
 		deleted_at: null
-	});
-	res.json(permissions[0])
+	}))[0];
+	if(foundCategory){
+		res.json(foundCategory)
+	}else{
+		res.json({
+			message: 'Data not found'
+		})
+	}
 })
 
 app.put('/editPermission/:id', async (req, res) => {

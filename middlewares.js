@@ -30,7 +30,8 @@ function authenticateJWT(req, res, next){
 function checkPublicEndpoints(url){
 	let accessibleRoutes = [
 		'/api/auth/login',
-		'/api/auth/addUser'
+		'/api/auth/addUser',
+		'/api/auth/addOrganization'
 	]
 	let isPublic = false;
 	accessibleRoutes.forEach((element) => {

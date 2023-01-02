@@ -18,9 +18,7 @@ app.post('/addRack', 	async (req, res) => {
 	res.statusCode = 400;
 	if(validation.validationStatus){
 		const createdRack = await db('racks').insert({
-			name: body.name,
-			shelves: body.shelves,
-			places: body.places,
+			...req.body,
 			created_at: now,
 			updated_at: now,
 		}).returning('*');
@@ -30,9 +28,18 @@ app.post('/addRack', 	async (req, res) => {
 	res.json(responseData)
 })
 
-app.get('/getRack/:id', async (req, res) => {
-	const dbData = await db('racks').where({id: req.params.id, deleted_at: null}).select('*');
-	res.json(dbData[0])
+app.get('/getRack', async (req, res) => {
+	const searchingData = req.body;
+	const foundCategory = (await db('racks').select('*').where({...searchingData,
+		deleted_at: null
+	}))[0];
+	if(foundCategory){
+		res.json(foundCategory)
+	}else{
+		res.json({
+			message: 'Data not found'
+		})
+	}
 })
 
 app.get('/getRacks', async (req, res) => {

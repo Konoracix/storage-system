@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
 app.listen(port, ()=>{
 	console.log(`App is listening on port ${port}`)
 })
-app.use(middlewares.authenticateJWT)
+app.use(middlewares.authenticateJWT)	
 
 app.use('/api', api);
 

@@ -64,12 +64,12 @@ exports.up = function(knex) {
 	}).createTable('items', function (table){
 		table.increments('id');
 		table.bigInteger('organization_id').references('id').inTable('organizations').notNullable();
+		table.bigInteger('categories_id').references('id').inTable('categories').notNullable();
 		table.bigInteger('rack_id').references('id').inTable('racks').notNullable();
 		table.bigInteger('shelve_number').notNullable();
 		table.bigInteger('place_number').notNullable();
 		table.string('name', 255).notNullable();
 		table.string('description', 255);
-		table.boolean('ready_to_shipment').defaultTo(false);
 		table.timestamp('created_at').notNullable();
 		table.timestamp('updated_at').notNullable();
 		table.timestamp('deleted_at');
