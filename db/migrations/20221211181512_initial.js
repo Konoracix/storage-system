@@ -24,15 +24,19 @@ exports.up = function(knex) {
 	}).createTable('permissions', function (table){
 		table.increments('id');
 		table.bigInteger('user_id').references('id').inTable('users').notNullable().unique();
-		table.boolean('adding_users').defaultTo(false);
-		table.boolean('editing_users_permissions').defaultTo(false);
-		table.boolean('removing_users').defaultTo(false);
-		table.boolean('adding_racks').defaultTo(false);
-		table.boolean('editing_racks').defaultTo(false);
-		table.boolean('removing_racks').defaultTo(false);
-		table.boolean('adding_items').defaultTo(false);
-		table.boolean('editing_items').defaultTo(false);
-		table.boolean('removing_items').defaultTo(false);
+		table.boolean('users_permissions').defaultTo(false);
+		table.boolean('racks_permissions').defaultTo(false);
+		table.boolean('items_premissions').defaultTo(false);
+
+		// table.boolean('adding_users').defaultTo(false);
+		// table.boolean('editing_users_permissions').defaultTo(false);
+		// table.boolean('removing_users').defaultTo(false);
+		// table.boolean('adding_racks').defaultTo(false);
+		// table.boolean('editing_racks').defaultTo(false);
+		// table.boolean('removing_racks').defaultTo(false);
+		// table.boolean('adding_items').defaultTo(false);
+		// table.boolean('editing_items').defaultTo(false);
+		// table.boolean('removing_items').defaultTo(false);
 		table.timestamp('created_at').notNullable();
 		table.timestamp('updated_at').notNullable();
 		table.timestamp('deleted_at');

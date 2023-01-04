@@ -234,9 +234,11 @@ app.put('/editPermission/:id', async (req, res) => {
 	res.json(updatedPermission[0])
 })
 
-app.get('/login', async (req, res) => {
+app.post('/login', async (req, res) => {
 	let mail = req.body.mail;
 	let password = req.body.password;
+	console.log(mail)
+	console.log(password)
 	let user = (await db('users').select('*').where({
 		mail: mail,
 		deleted_at: null
@@ -267,6 +269,12 @@ app.get('/login', async (req, res) => {
 			message: "Invalid data. API sad :("
 		})
 	}
+})
+
+app.put('/logout', async (req, res) => {
+	const token = (req.headers.authorization.split(' ')[1]);
+	const editedSession = await db('sessions').where({token: token}).update({expiration_date: moment()}).returning('*');
+	res.json(editedSession[0])
 })
 
 module.exports = app;

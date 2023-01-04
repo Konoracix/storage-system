@@ -1,8 +1,9 @@
 require('dotenv').config()
 const express = require('express');
-const { json } = require('express/lib/response');
 const app = express();
+const cors = require('cors')
 const port = process.env.PORT;
+
 
 const middlewares = require('./middlewares')
 
@@ -16,7 +17,16 @@ app.use(helmet())
 app.use(morgan('dev'))
 app.use(bp.json())
 app.use(bp.urlencoded({ extended: true }))
+app.use(cors())
 
+// app.use(function(req, res, next) {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header(
+//     'Access-Control-Allow-Headers',
+//     'Origin, X-Requested-With, Content-Type, Accept'
+//   );
+//   next();
+// });
 
 app.get('/', (req, res) => {
 	res.json({

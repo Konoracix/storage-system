@@ -31,7 +31,8 @@ function checkPublicEndpoints(url){
 	let accessibleRoutes = [
 		'/api/auth/login',
 		'/api/auth/addUser',
-		'/api/auth/addOrganization'
+		'/api/auth/addOrganization',
+		'/api/auth/logout'
 	]
 	let isPublic = false;
 	accessibleRoutes.forEach((element) => {
