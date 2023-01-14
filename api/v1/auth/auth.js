@@ -47,7 +47,8 @@ app.get('/getAllOrganizations', async (req, res) => {
 	})
 	.limit(filterQueries.limit)
 	.offset((filterQueries.currentPage-1)*filterQueries.limit)
-	.select('*');
+	.select('*')
+	.orderBy('id');
 
 	res.json({
 		current_page: parseInt(filterQueries.currentPage),
@@ -60,6 +61,21 @@ app.get('/getAllOrganizations', async (req, res) => {
 app.get('/getOneOrganization', async (req, res) => {
 	const searchingData = req.body;
 	const foundCategory = (await db('organizations').select('*').where({...searchingData,
+		deleted_at: null
+	}))[0];
+	if(foundCategory){
+		res.json(foundCategory)
+	}else{
+		res.json({
+			message: 'Data not found'
+		})
+	}
+});
+
+app.get('/getOrganizationById/:id', async (req, res) => {
+	const id = req.params.id;
+	const foundCategory = (await db('organizations').select('*').where({
+		id: id,
 		deleted_at: null
 	}))[0];
 	if(foundCategory){
@@ -113,6 +129,7 @@ app.get('/getAllUsers', async (req, res) => {
 		dateTo:	req.query.date_to
 	}
 	const dbData = await db('users').where(builder => {
+		builder.andWhere(req.body);
 		if(filterQueries.isDeleted == "false"){
 			builder.andWhere("deleted_at", null);
 		}if(filterQueries.dateTo){
@@ -123,12 +140,45 @@ app.get('/getAllUsers', async (req, res) => {
 	})
 	.limit(filterQueries.limit)
 	.offset((filterQueries.currentPage-1)*filterQueries.limit)
-	.select('*');
+	.select('*')
+	.orderBy('id');
 
 	res.json({
 		current_page: parseInt(filterQueries.currentPage),
 		limit: parseInt(filterQueries.limit),
 		total_pages: Math.ceil(await helperFuncions.count(filterQueries.isDeleted) / filterQueries.limit),
+		data: dbData
+	})
+})
+
+app.get('/getAllUsersById/:id/:organizationId', async (req, res) => {
+	const filterQueries = {
+		limit: req.query.limit ?? 10,
+		currentPage: req.query.current_page ?? 1,
+		isDeleted: req.query.is_deleted ? req.query.is_deleted.toString() : "false",
+		dateFrom: req.query.date_from,
+		dateTo:	req.query.date_to
+	}
+	const dbData = await db('users').where(builder => {
+		builder.andWhere({
+			organization_id: req.params.id
+		});
+		if(filterQueries.isDeleted == "false"){
+			builder.andWhere("deleted_at", null);
+		}if(filterQueries.dateTo){
+			builder.andWhere("created_at", "<", filterQueries.dateTo)
+		}if(filterQueries.dateFrom){
+			builder.andWhere("created_at", ">", filterQueries.dateFrom)
+		}
+	})
+	.limit(filterQueries.limit)
+	.offset((filterQueries.currentPage-1)*filterQueries.limit)
+	.select('*')
+	.orderBy('id');
+	res.json({
+		current_page: parseInt(filterQueries.currentPage),
+		limit: parseInt(filterQueries.limit),
+		total_pages: Math.ceil(await helperFuncions.count(req.params.organizationId, filterQueries.isDeleted) / filterQueries.limit),
 		data: dbData
 	})
 })
@@ -145,6 +195,67 @@ app.get('/getOneUser', async (req, res) => {
 			message: 'Data not found'
 		})
 	}
+})
+
+app.get('/getUserById/:id', async (req, res) => {
+	const id = req.params.id;
+	const foundCategory = (await db('users').select('*').where({
+		id: id,
+		deleted_at: null
+	}))[0];
+	if(foundCategory){
+		res.json(foundCategory)
+	}else{
+		res.json({
+			message: 'Data not found'
+		})
+	}
+})
+
+app.get('/getUserBySearch/:id/:data', async (req, res) => {
+	const filterQueries = {
+		limit: req.query.limit ?? 10,
+		currentPage: req.query.current_page ?? 1,
+		isDeleted: req.query.is_deleted ? req.query.is_deleted.toString() : "false",
+		dateFrom: req.query.date_from,
+		dateTo:	req.query.date_to
+	}
+		const dbData = await db('users').where(builder => {
+			// || req.params.data != 'null'
+			if(req.params.data != 'undefined' && req.params.data != 'null'){
+				builder.andWhere({
+					organization_id: req.params.id,
+					deleted_at: null,
+					name: req.params.data
+				});
+				builder.orWhere({
+					organization_id: req.params.id,
+					deleted_at: null,
+					surname: req.params.data
+				});
+				builder.orWhere({
+					organization_id: req.params.id,
+					deleted_at: null ,
+					mail: req.params.data
+				});
+			}else{
+				builder.andWhere({
+					organization_id: req.params.id,
+					deleted_at: null,
+				});
+			}
+	})
+	.limit(filterQueries.limit)
+	.offset((filterQueries.currentPage-1)*filterQueries.limit)
+	.select('*')
+	.orderBy('id');
+	res.json({
+		current_page: parseInt(filterQueries.currentPage),
+		limit: parseInt(filterQueries.limit),
+		total_pages: Math.ceil(await helperFuncions.count(req.params.id, req.params.data,  filterQueries.isDeleted) / filterQueries.limit),
+		data: dbData
+	})
+
 })
 
 app.put('/editUser/:id', async (req, res) => {
@@ -226,6 +337,21 @@ app.get('/getOnePermission', async (req, res) => {
 	}
 })
 
+app.get('/getPermissionById/:id', async (req, res) => {
+	const id = req.params.id;
+	const foundCategory = (await db('permissions').select('*').where({
+		user_id: id,
+		deleted_at: null
+	}))[0];
+	if(foundCategory){
+		res.json(foundCategory)
+	}else{
+		res.json({
+			message: 'Data not found'
+		})
+	}
+})
+
 app.put('/editPermission/:id', async (req, res) => {
 	const updatedPermission = await db('permissions').where({id: req.params.id}).update({
 		...req.body,
@@ -237,8 +363,6 @@ app.put('/editPermission/:id', async (req, res) => {
 app.post('/login', async (req, res) => {
 	let mail = req.body.mail;
 	let password = req.body.password;
-	console.log(mail)
-	console.log(password)
 	let user = (await db('users').select('*').where({
 		mail: mail,
 		deleted_at: null
@@ -275,6 +399,39 @@ app.put('/logout', async (req, res) => {
 	const token = (req.headers.authorization.split(' ')[1]);
 	const editedSession = await db('sessions').where({token: token}).update({expiration_date: moment()}).returning('*');
 	res.json(editedSession[0])
+})
+
+app.get('/tokenData/:token', async (req, res) => {
+	const data = req.params.token;
+	const dbData = await db('sessions').where({
+		token: data
+	}).select('*'); 
+	res.json(dbData[0])
+})
+
+app.get('/checkPassword/:id/:password', async(req, res) => {
+	let password = req.params.password;
+
+	let user = (await db('users').select('*').where({
+		id: req.params.id,
+		deleted_at: null
+	}))[0]
+	if(user) {
+		const result = await bcrypt.compare(password, user.password)
+		if(result){
+			res.json({
+				message: 'true'
+			})
+		}else{
+			res.json({
+				message: "Invalid data. API sad :("
+			})
+		}
+	}else{
+		res.json({
+			message: "Invalid data. API sad :("
+		})
+	}
 })
 
 module.exports = app;

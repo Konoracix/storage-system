@@ -72,6 +72,41 @@ app.get('/getRacks', async (req, res) => {
 
 })
 
+app.get('/getRacksBySearch/:id/:data', async (req, res) => {
+	const filterQueries = {
+		limit: req.query.limit ?? 10,
+		currentPage: req.query.current_page ?? 1,
+		isDeleted: req.query.is_deleted ? req.query.is_deleted.toString() : "false",
+		dateFrom: req.query.date_from,
+		dateTo:	req.query.date_to
+	}
+		const dbData = await db('racks').where(builder => {
+			// || req.params.data != 'null'
+			if(req.params.data != 'undefined' && req.params.data != 'null'){
+				builder.andWhere({
+					organization_id: req.params.id,
+					deleted_at: null,
+					name: req.params.data
+				});
+			}else{
+				builder.andWhere({
+					organization_id: req.params.id,
+					deleted_at: null,
+				});
+			}
+	})
+	.limit(filterQueries.limit)
+	.offset((filterQueries.currentPage-1)*filterQueries.limit)
+	.select('*')
+	.orderBy('id');
+	res.json({
+		current_page: parseInt(filterQueries.currentPage),
+		limit: parseInt(filterQueries.limit),
+		total_pages: Math.ceil(await helperFuncions.count(req.params.id, req.params.data,  filterQueries.isDeleted) / filterQueries.limit),
+		data: dbData
+	})
+})
+
 app.delete('/deleteRack/:id', async (req, res) => {
 	const id = req.params.id;
 	const now = new Date();

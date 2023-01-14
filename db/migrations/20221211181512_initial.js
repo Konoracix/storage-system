@@ -15,7 +15,7 @@ exports.up = function(knex) {
 		table.bigInteger('organization_id').references('id').inTable('organizations').notNullable()
 		table.string('name', 255);
 		table.string('surname', 255);
-		table.string('mail', 255).notNullable();
+		table.string('mail', 255).notNullable().unique();
 		table.string('password', 255).notNullable();
 		table.timestamp('created_at').notNullable();
 		table.timestamp('updated_at').notNullable();
