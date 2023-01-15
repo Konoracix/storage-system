@@ -23,7 +23,7 @@ app.delete('/deleteItem/:id', async (req, res) => {
 	res.json(deletedItem[0]);
 })
 
-app.get('/getAllItems', async (req, res) => {
+app.get('/getAllItemsBySearch/:id/:data', async (req, res) => {
 	const filterQueries = {
 		limit: req.query.limit ?? 10,
 		currentPage: req.query.current_page ?? 1,
@@ -31,13 +31,20 @@ app.get('/getAllItems', async (req, res) => {
 		dateFrom: req.query.date_from,
 		dateTo:	req.query.date_to
 	}
+	console.log(req.params.data)
+
 	const dbData = await db('items').where(builder => {
-		if(filterQueries.isDeleted == "false"){
-			builder.andWhere("deleted_at", null);
-		}if(filterQueries.dateTo){
-			builder.andWhere("created_at", "<", filterQueries.dateTo)
-		}if(filterQueries.dateFrom){
-			builder.andWhere("created_at", ">", filterQueries.dateFrom)
+		if(req.params.data != 'undefined' && req.params.data != 'null'){
+			builder.andWhere({
+				organization_id: req.params.id,
+				deleted_at: null,
+				name: req.params.data
+			});
+		}else{
+			builder.andWhere({
+				organization_id: req.params.id,
+				deleted_at: null,
+			});
 		}
 	})
 	.limit(filterQueries.limit)
@@ -47,7 +54,7 @@ app.get('/getAllItems', async (req, res) => {
 	res.json({
 		current_page: parseInt(filterQueries.currentPage),
 		limit: parseInt(filterQueries.limit),
-		total_pages: Math.ceil(await helperFuncions.count(filterQueries.isDeleted) / filterQueries.limit),
+		total_pages: Math.ceil(await helperFuncions.count(req.params.id, req.params.data,  filterQueries.isDeleted) / filterQueries.limit),
 		data: dbData
 	})
 })

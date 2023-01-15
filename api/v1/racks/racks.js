@@ -28,9 +28,9 @@ app.post('/addRack', 	async (req, res) => {
 	res.json(responseData)
 })
 
-app.get('/getRack', async (req, res) => {
-	const searchingData = req.body;
-	const foundCategory = (await db('racks').select('*').where({...searchingData,
+app.get('/getRack/:id', async (req, res) => {
+	const foundCategory = (await db('racks').select('*').where({
+		id: req.params.id,
 		deleted_at: null
 	}))[0];
 	if(foundCategory){
@@ -42,34 +42,12 @@ app.get('/getRack', async (req, res) => {
 	}
 })
 
-app.get('/getRacks', async (req, res) => {
-	const filterQueries = {
-		limit: req.query.limit ?? 10,
-		currentPage: req.query.current_page ?? 1,
-		isDeleted: req.query.is_deleted ? req.query.is_deleted.toString() : "false",
-		dateFrom: req.query.date_from,
-		dateTo:	req.query.date_to
-	}
-	const dbData = await db('racks').where(builder => {
-		if(filterQueries.isDeleted == "false"){
-			builder.andWhere("deleted_at", null);
-		}if(filterQueries.dateTo){
-			builder.andWhere("created_at", "<", filterQueries.dateTo)
-		}if(filterQueries.dateFrom){
-			builder.andWhere("created_at", ">", filterQueries.dateFrom)
-		}
+app.get('/getRacks/:id', async (req, res) => {
+	const dbData = await db('racks').where({
+		organization_id: req.params.id
 	})
-	.limit(filterQueries.limit)
-	.offset((filterQueries.currentPage-1)*filterQueries.limit)
 	.select('*');
-
-	res.json({
-		current_page: parseInt(filterQueries.currentPage),
-		limit: parseInt(filterQueries.limit),
-		total_pages: Math.ceil(await helperFuncions.count(filterQueries.isDeleted) / filterQueries.limit),
-		data: dbData
-	})
-
+	res.json(dbData)
 })
 
 app.get('/getRacksBySearch/:id/:data', async (req, res) => {
@@ -105,6 +83,26 @@ app.get('/getRacksBySearch/:id/:data', async (req, res) => {
 		total_pages: Math.ceil(await helperFuncions.count(req.params.id, req.params.data,  filterQueries.isDeleted) / filterQueries.limit),
 		data: dbData
 	})
+})
+
+app.get('/getRacksBySearchNoPagi/:id/:data', async (req, res) => {
+		const dbData = await db('racks').where(builder => {
+			if(req.params.data != 'undefined' && req.params.data != 'null'){
+				builder.andWhere({
+					organization_id: req.params.id,
+					deleted_at: null,
+					name: req.params.data
+				});
+			}else{
+				builder.andWhere({
+					organization_id: req.params.id,
+					deleted_at: null,
+				});
+			}
+	})
+	.select('*')
+	.orderBy('id');
+	res.json(dbData)
 })
 
 app.delete('/deleteRack/:id', async (req, res) => {
